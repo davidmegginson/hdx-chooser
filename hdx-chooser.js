@@ -30,10 +30,16 @@ HDX.setup = function () {
     }
 
     function renderResource(resource) {
+        function onclick () {
+            alert(resource.url);
+            return false;
+        }
+        
         var node = document.createElement('dd');
         node.setAttribute('class', 'resource');
         var link = document.createElement('a');
         link.setAttribute('href', resource.url);
+        link.onclick = onclick;
         link.appendChild(document.createTextNode(resource.name));
         node.appendChild(link);
         return node;
