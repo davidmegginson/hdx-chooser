@@ -1,5 +1,15 @@
 var HDX = {};
 
+HDX.setup = function() {
+    window.addEventListener('load', HDX.render);
+    window.addEventListener('keydown', function (event) {
+        event = event || window.event;
+        if (event.keyCode == 27) {
+            window.close();
+        }
+    });
+};
+
 HDX.doAjax = function(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
@@ -15,7 +25,7 @@ HDX.doAjax = function(url, callback) {
     xhr.send(null);
 };
 
-HDX.setup = function () {
+HDX.render = function () {
 
     function renderDataset(dataset) {
         var node = document.createElement('dl');
@@ -30,15 +40,16 @@ HDX.setup = function () {
     }
 
     function renderResource(resource) {
+
         function onclick () {
-            alert(resource.url);
+            window.opener.postMessage(resource, '*');
             return false;
         }
         
         var node = document.createElement('dd');
         node.setAttribute('class', 'resource');
         var link = document.createElement('a');
-        link.setAttribute('href', resource.url);
+        link.setAttribute('href', '#');
         link.onclick = onclick;
         link.appendChild(document.createTextNode(resource.name));
         node.appendChild(link);
@@ -56,5 +67,4 @@ HDX.setup = function () {
     HDX.doAjax('https://data.hdx.rwlabs.org/api/3/action/package_search?fq=tags:hxl', callback);
 };
 
-window.addEventListener('load', HDX.setup, false);
-
+HDX.setup();
