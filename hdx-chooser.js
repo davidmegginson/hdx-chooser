@@ -125,7 +125,7 @@ HDX.renderGroupTagPackages = function (group, tag) {
 
         var node = $('#datasets');
         node.empty();
-        node.append($('<h2>').text("Datasets for " + tag.name + " in " + group.display_name));
+        node.append($('<h2>').text("Datasets for " + tag.display_name + " in " + group.display_name));
         for (i in datasets) {
             node.append(drawDataset(datasets[i]));
         }
