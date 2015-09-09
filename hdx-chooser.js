@@ -5,13 +5,20 @@ HDX.config = {
 };
 
 HDX.setup = function() {
-    window.addEventListener('load', HDX.renderGroups);
-    window.addEventListener('keydown', function (event) {
-        event = event || window.event;
-        if (event.keyCode == 27) {
-            window.close();
-        }
-    });
+
+    // restore state from the hash (if any)
+    window.addEventListener('hashchange', HDX.restoreHash, false);
+    window.addEventListener('load', HDX.restoreHash, false);
+
+    // if this is a popup, ESC closes it.
+    if (window.opener) {
+        window.addEventListener('keydown', function (event) {
+            event = event || window.event;
+            if (event.keyCode == 27) {
+                window.close();
+            }
+        });
+    }
 };
 
 HDX.doAjax = function(url, callback) {
@@ -29,6 +36,41 @@ HDX.doAjax = function(url, callback) {
     xhr.send(null);
 };
 
+HDX.updateHash = function(group, tag, dataset) {
+    var hash = '';
+    if (group) {
+        hash += encodeURIComponent(group.name);
+        if (tag) {
+            hash += ',' + encodeURIComponent(tag.name);
+            if (dataset) {
+                hash += ',' + encodeURIComponent(dataset.name);
+            }
+        }
+    }
+    if (hash) {
+        window.location.hash ='#' +  hash;
+    }
+}
+
+HDX.restoreHash = function() {
+    var hashParts = window.location.hash.substr(1).split(',').map(decodeURIComponent);
+    if (hashParts[0]) {
+        HDX.doAjax(HDX.config.url + '/api/3/action/group_show?id=' + encodeURIComponent(hashParts[0]), function (data) {
+            group = data.result;
+            if (hashParts[1]) {
+                HDX.doAjax(HDX.config.url + '/api/3/action/tag_show?id=' + encodeURIComponent(hashParts[1]), function (data) {
+                    tag = data.result;
+                    HDX.renderTag(group, tag);
+                });
+            } else {
+                HDX.renderGroup(group);
+            }
+        });
+    } else {
+        HDX.renderGroups();
+    }
+        
+}
 
 /**
  * Render groups as folders.
@@ -40,7 +82,7 @@ HDX.renderGroups = function() {
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(group.display_name + ' (' + group.package_count + ')'));
         node.click(function (event) {
-            HDX.renderGroupTags(group);
+            HDX.renderGroup(group);
         });
         return node;
     }
@@ -55,14 +97,14 @@ HDX.renderGroups = function() {
     });
 };
 
-HDX.renderGroupTags = function(group) {
+HDX.renderGroup = function(group) {
 
     function drawTag(tag, count) {
         var node = $('<div class="folder">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(tag.display_name + ' (' + count + ')'));
         node.click(function (event) {
-            HDX.renderGroupTagPackages(group, tag);
+            HDX.renderTag(group, tag);
         });
         return node;
     }
@@ -92,17 +134,20 @@ HDX.renderGroupTags = function(group) {
         for (i in tagNames) {
             node.append(drawTag(tagSet[tagNames[i]], tagCounts[tagNames[i]]));
         }
+
+        HDX.updateHash(group);
     });
 
 };
 
-HDX.renderGroupTagPackages = function (group, tag) {
+HDX.renderTag = function (group, tag) {
 
     function drawDataset(dataset) {
         var node = $('<div class="folder">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ')'));
         node.click(function (event) {
+            HDX.updateHash(group, tag, dataset);
             console.log(dataset);
         });
         return node;
@@ -129,49 +174,8 @@ HDX.renderGroupTagPackages = function (group, tag) {
         for (i in datasets) {
             node.append(drawDataset(datasets[i]));
         }
+        HDX.updateHash(group, tag);
     });
-};
-
-HDX.render = function () {
-
-    function renderDataset(dataset) {
-        var node = document.createElement('dl');
-        node.setAttribute('class', 'dataset');
-        var title = document.createElement('dt');
-        title.appendChild(document.createTextNode(dataset.title));
-        node.appendChild(title);
-        for (i in dataset.resources) {
-            node.appendChild(renderResource(dataset.resources[i]))
-        }
-        return node;
-    }
-
-    function renderResource(resource) {
-
-        function onclick () {
-            window.opener.postMessage(resource, '*');
-            return false;
-        }
-        
-        var node = document.createElement('dd');
-        node.setAttribute('class', 'resource');
-        var link = document.createElement('a');
-        link.setAttribute('href', '#');
-        link.onclick = onclick;
-        link.appendChild(document.createTextNode(resource.name));
-        node.appendChild(link);
-        return node;
-    }
-    
-    function callback(data) {
-        var node = document.getElementById('datasets');
-        for (i in data.result.results) {
-            var dataset = data.result.results[i];
-            node.appendChild(renderDataset(dataset));
-        }
-    }
-
-    HDX.doAjax(HDX.config.url + '/api/3/action/package_search?fq=tags:hxl', callback);
 };
 
 HDX.setup();
