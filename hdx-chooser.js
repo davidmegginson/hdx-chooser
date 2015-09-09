@@ -1,9 +1,35 @@
+/**
+ * Javascript support for an HDX resource chooser.
+ *
+ * Shows a list of countries (at the root level), then tags, then
+ * datasets, all as folders.  Inside each dataset appear the resources
+ * as files.
+ *
+ * Stores state in the hash, for bookmarking (etc.).
+ *
+ * Supports public datasets only.
+ *
+ * Started 2015-09 by David Megginson
+ */
+
+
+/**
+ * Root object, acting as a namespace.
+ */
 var HDX = {};
 
+
+/**
+ * Configuration information.
+ */
 HDX.config = {
     url: 'https://data.hdx.rwlabs.org'
 };
 
+
+/**
+ * Set up the environment.
+ */
 HDX.setup = function() {
 
     // restore state from the hash (if any)
@@ -21,6 +47,10 @@ HDX.setup = function() {
     }
 };
 
+
+/**
+ * Low-level function to make an AJAX call to HDX.
+ */
 HDX.doAjax = function(url, callback) {
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
@@ -36,6 +66,49 @@ HDX.doAjax = function(url, callback) {
     xhr.send(null);
 };
 
+
+/**
+ * High-level function to retrieve a group.
+ */
+HDX.getGroup = function(id, callback) {
+    var url = HDX.config.url
+        + '/api/3/action/group_show?id='
+        + encodeURIComponent(id);
+    HDX.doAjax(url, function (data) {
+        callback(data.result);
+    });
+};
+
+
+/**
+ * High-level function to retrieve a tag.
+ */
+HDX.getTag = function(id, callback) {
+    var url = HDX.config.url
+        + '/api/3/action/tag_show?id='
+        + encodeURIComponent(id);
+    HDX.doAjax(url, function (data) {
+        callback(data.result);
+    });
+};
+
+
+/**
+ * High-level function to retrieve a dataset.
+ */
+HDX.getDataset = function(id, callback) {
+    var url = HDX.config.url
+        + '/api/3/action/package_show?id='
+        + encodeURIComponent(id);
+    HDX.doAjax(url, function (data) {
+        callback(data.result);
+    });
+};
+
+
+/**
+ * Update the fragment identifier (hash) with the current context.
+ */
 HDX.updateHash = function(group, tag, dataset) {
     var hash = '';
     if (group) {
@@ -50,17 +123,29 @@ HDX.updateHash = function(group, tag, dataset) {
     if (hash) {
         window.location.hash ='#' +  hash;
     }
+    HDX.savedHash = window.location.hash;
 }
 
+
+/**
+ * Restore the current context from the fragment identifier (hash).
+ */
 HDX.restoreHash = function() {
+    if (window.location.hash == HDX.savedHash) {
+        return;
+    }
     var hashParts = window.location.hash.substr(1).split(',').map(decodeURIComponent);
     if (hashParts[0]) {
-        HDX.doAjax(HDX.config.url + '/api/3/action/group_show?id=' + encodeURIComponent(hashParts[0]), function (data) {
-            group = data.result;
+        HDX.getGroup(hashParts[0], function (group) {
             if (hashParts[1]) {
-                HDX.doAjax(HDX.config.url + '/api/3/action/tag_show?id=' + encodeURIComponent(hashParts[1]), function (data) {
-                    tag = data.result;
-                    HDX.renderTag(group, tag);
+                HDX.getTag(hashParts[1], function (tag) {
+                    if (hashParts[2]) {
+                        HDX.getDataset(hashParts[2], function (dataset) {
+                            HDX.renderDataset(group, tag, dataset);
+                        });
+                    } else {
+                        HDX.renderTag(group, tag);
+                    }
                 });
             } else {
                 HDX.renderGroup(group);
@@ -69,11 +154,12 @@ HDX.restoreHash = function() {
     } else {
         HDX.renderGroups();
     }
-        
+    HDX.savedHash = window.location.hash;
 }
 
+
 /**
- * Render groups as folders.
+ * Render countries (groups) as folders.
  */
 HDX.renderGroups = function() {
 
@@ -88,7 +174,7 @@ HDX.renderGroups = function() {
     }
     
     HDX.doAjax(HDX.config.url + '/api/3/action/group_list?all_fields=1', function (data) {
-        var node = $('#datasets');
+        var node = $('#content');
         node.empty();
         node.append($('<h2>').text("Countries"));
         for (i in data.result) {
@@ -97,6 +183,10 @@ HDX.renderGroups = function() {
     });
 };
 
+
+/**
+ * Render a single country (group) as a set of tag folders.
+ */
 HDX.renderGroup = function(group) {
 
     function drawTag(tag, count) {
@@ -110,7 +200,7 @@ HDX.renderGroup = function(group) {
     }
 
     HDX.doAjax(HDX.config.url + '/api/3/action/group_package_show?id=' + encodeURIComponent(group.id), function (data) {
-        var node = $('#datasets');
+        var node = $('#content');
         var tagSet = {};
         var tagCounts = {};
 
@@ -140,6 +230,10 @@ HDX.renderGroup = function(group) {
 
 };
 
+
+/**
+ * Render the datasets for a country (group) + tag combination.
+ */
 HDX.renderTag = function (group, tag) {
 
     function drawDataset(dataset) {
@@ -147,8 +241,7 @@ HDX.renderTag = function (group, tag) {
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ')'));
         node.click(function (event) {
-            HDX.updateHash(group, tag, dataset);
-            console.log(dataset);
+            HDX.renderDataset(group, tag, dataset);
         });
         return node;
     }
@@ -168,7 +261,7 @@ HDX.renderTag = function (group, tag) {
             }
         }
 
-        var node = $('#datasets');
+        var node = $('#content');
         node.empty();
         node.append($('<h2>').text("Datasets for " + tag.display_name + " in " + group.display_name));
         for (i in datasets) {
@@ -177,5 +270,32 @@ HDX.renderTag = function (group, tag) {
         HDX.updateHash(group, tag);
     });
 };
+
+
+/**
+ * Render a dataset as a collection of files (resources).
+ */
+HDX.renderDataset = function(group, tag, dataset) {
+
+    function drawResource(resource) {
+        console.log(resource);
+        var node = $('<div class="file">');
+        node.append($('<span class="glyphicon glyphicon-file icon">'));
+        node.append($('<span class="icon-label">').text(resource.name));
+        node.click(function (event) {
+            window.location.href = resource.url;
+        });
+        return node;
+    }
+    HDX.getDataset(dataset.name, function (dataset) {
+        var node = $('#content');
+        node.empty();
+        for (i in dataset.resources) {
+            node.append(drawResource(dataset.resources[i]));
+        }
+        HDX.updateHash(group, tag, dataset);
+    });
+};
+
 
 HDX.setup();

@@ -1,12 +1,14 @@
-.folder {
+.folder, .file {
     padding: .5em;
     width: 8em;
     min-height: 8em;
     float: left;
     text-align: center;
+    word-wrap: break-word;
+    word-wrap: break-all;
 }
 
-.folder .icon {
+.icon {
     display: block;
     font-size: 200%;
 }
