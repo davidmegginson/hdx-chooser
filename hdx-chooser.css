@@ -1,3 +1,7 @@
+body {
+    margin: 0, auto;
+}
+
 .folder, .file {
     padding: .5em;
     width: 8em;
