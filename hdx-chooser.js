@@ -52,10 +52,14 @@ HDX.setup = function() {
  * Low-level function to make an AJAX call to HDX.
  */
 HDX.doAjax = function(url, callback) {
+    $('.spinner').show();
+    $('#content').addClass('loading');
     var xhr = new XMLHttpRequest();
     xhr.open('GET', url);
     xhr.onreadystatechange = function () {
         if (xhr.readyState == 4) {
+            $('.spinner').hide();
+            $('#content').removeClass('loading');
             if (xhr.status == 200) {
                 callback(JSON.parse(xhr.responseText));
             } else {
@@ -64,6 +68,24 @@ HDX.doAjax = function(url, callback) {
         }
     }
     xhr.send(null);
+};
+
+
+/**
+ * High-level function to retrieve all groups.
+ */
+HDX.getGroups = function(callback) {
+    HDX.doAjax(HDX.config.url + '/api/3/action/group_list?all_fields=1', function (data) {
+        callback(data.result.sort(function (a, b) {
+            if (a.display_name < b.display_name) {
+                return -1;
+            } else if (a.display_name > b.display_name) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }));
+    });
 };
 
 
@@ -141,7 +163,7 @@ HDX.updateHash = function(group, tag, dataset) {
     }
 
     $('.breadcrumb').empty();
-    showCrumb('Home', '');
+    showCrumb('Countries', '');
     if (group) {
         showCrumb(group.display_name, makeHash(group));
         if (tag) {
@@ -184,7 +206,6 @@ HDX.restoreHash = function() {
     HDX.savedHash = window.location.hash;
 }
 
-
 /**
  * Render countries (groups) as folders.
  */
@@ -199,14 +220,13 @@ HDX.renderGroups = function() {
         });
         return node;
     }
-    
-    HDX.doAjax(HDX.config.url + '/api/3/action/group_list?all_fields=1', function (data) {
+
+    HDX.getGroups(function (groups) {
         var node = $('#content');
         node.empty();
-        for (i in data.result) {
-            node.append(drawGroup(data.result[i]));
+        for (i in groups) {
+            node.append(drawGroup(groups[i]));
         }
-
         HDX.updateHash();
     });
 };
@@ -293,6 +313,7 @@ HDX.renderTag = function (group, tag) {
         for (i in datasets) {
             node.append(drawDataset(datasets[i]));
         }
+
         HDX.updateHash(group, tag);
     });
 };
@@ -312,6 +333,7 @@ HDX.renderDataset = function(group, tag, dataset) {
         });
         return node;
     }
+
     HDX.getDataset(dataset.name, function (dataset) {
         var node = $('#content');
         node.empty();
