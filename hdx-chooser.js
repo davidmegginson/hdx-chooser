@@ -228,6 +228,7 @@ HDX.renderGroups = function() {
             node.append(drawGroup(groups[i]));
         }
         HDX.updateHash();
+        document.title = 'Countries (HDX)';
     });
 };
 
@@ -238,6 +239,9 @@ HDX.renderGroups = function() {
 HDX.renderGroup = function(group) {
 
     function drawTag(tag, count) {
+        if (tag.vocabulary_id) {
+            return;
+        }
         var node = $('<div class="folder">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(tag.display_name + ' (' + count + ')'));
@@ -273,6 +277,7 @@ HDX.renderGroup = function(group) {
         }
 
         HDX.updateHash(group);
+        document.title = group.display_name + ' (HDX)';
     });
 
 };
@@ -284,9 +289,11 @@ HDX.renderGroup = function(group) {
 HDX.renderTag = function (group, tag) {
 
     function drawDataset(dataset) {
-        var node = $('<div class="folder">')
+        console.log(dataset);
+        var node = $('<div class="dataset">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ')'));
+        node.append($('<span class="icon-source">').text(dataset.extras.dataset_source || dataset.organization));
+        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ' file[s])'));
         node.click(function (event) {
             HDX.renderDataset(group, tag, dataset);
         });
@@ -315,6 +322,7 @@ HDX.renderTag = function (group, tag) {
         }
 
         HDX.updateHash(group, tag);
+        document.title = group.display_name + " - " + tag.display_name + ' (HDX)';
     });
 };
 
@@ -325,7 +333,7 @@ HDX.renderTag = function (group, tag) {
 HDX.renderDataset = function(group, tag, dataset) {
 
     function drawResource(resource) {
-        var node = $('<div class="file">');
+        var node = $('<div class="dataset">');
         node.append($('<span class="glyphicon glyphicon-file icon">'));
         node.append($('<span class="icon-label">').text(resource.name));
         node.click(function (event) {
@@ -341,6 +349,7 @@ HDX.renderDataset = function(group, tag, dataset) {
             node.append(drawResource(dataset.resources[i]));
         }
         HDX.updateHash(group, tag, dataset);
+        document.title = dataset.title + ' (HDX)';
     });
 };
 

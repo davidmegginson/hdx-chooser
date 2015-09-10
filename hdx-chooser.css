@@ -27,6 +27,25 @@ main {
     font-size: 200%;
 }
 
+.dataset {
+    margin: 1em 0;
+}
+
+.dataset .icon {
+    float: left;
+}
+
+.dataset .icon-source {
+    display: block;
+    margin-left: 3em;
+    font-weight: bold;
+}
+
+.dataset .icon-label {
+    display: block;
+    margin-left: 3em;
+}
+
 #content.loading {
     color: #aaaaaa;
 }
