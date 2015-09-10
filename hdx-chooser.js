@@ -292,8 +292,8 @@ HDX.renderTag = function (group, tag) {
         console.log(dataset);
         var node = $('<div class="dataset">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-source">').text(dataset.extras.dataset_source || dataset.organization));
         node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ' file[s])'));
+        node.append($('<span class="icon-source">').text(dataset.extras.dataset_source || dataset.organization));
         node.click(function (event) {
             HDX.renderDataset(group, tag, dataset);
         });

@@ -38,7 +38,7 @@ main {
 .dataset .icon-source {
     display: block;
     margin-left: 3em;
-    font-weight: bold;
+    font-style: italic;
 }
 
 .dataset .icon-label {
