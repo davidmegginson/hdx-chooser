@@ -289,7 +289,6 @@ HDX.renderGroup = function(group) {
 HDX.renderTag = function (group, tag) {
 
     function drawDataset(dataset) {
-        console.log(dataset);
         var node = $('<div class="dataset">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ' file[s])'));
