@@ -1,15 +1,13 @@
 #content {
-    margin: 0 2em;
+    margin: 3em 2em 0;
 }
 
 nav {
     position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
-}
-
-main {
-    position: relative;
-    top: 4em;
+    z-index: 99;
 }
 
 .folder, .file {
