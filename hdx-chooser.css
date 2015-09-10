@@ -5,12 +5,11 @@
 nav {
     position: fixed;
     width: 100%;
-    height: 3em;
 }
 
 main {
     position: relative;
-    top: 3em;
+    top: 4em;
 }
 
 .folder, .file {
