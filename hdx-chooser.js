@@ -118,11 +118,21 @@ HDX.getCountries = function(callback) {
  * High-level function to retrieve a group.
  */
 HDX.getCountry = function(id, callback) {
+    // Can't use group_show, because HDX puts the whole
+    // boundary outline there, so we get an enormous
+    // return value.  Kludge around the problem
+    // by pulling an abbreviated group description
+    // from the first package in the group.
     var url = HDX.config.url
-        + '/api/3/action/group_show?id='
+        + '/api/3/action/group_package_show?limit=1&id='
         + encodeURIComponent(id);
     HDX.doAjax(url, function (data) {
-        callback(data.result);
+        groups = data.result[0].groups;
+        for (i in groups) {
+            if (groups[i].name == id) {
+                callback(groups[i]);
+            }
+        }
     });
 };
 
@@ -325,7 +335,7 @@ HDX.renderTag = function (group, tag) {
     }
     
     var url = HDX.config.url 
-        + '/api/search/dataset?q=groups:' 
+        + '/api/search/dataset?q=groups:'
         + encodeURIComponent(group.name) 
         + '&rows=9999&all_fields=1';
 
