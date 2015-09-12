@@ -49,9 +49,33 @@ HDX.setup = function() {
 
 
 /**
+ * Simple cache.
+ * Works on the assumption that users to reload to get fresh data,
+ * and that a session will never last long enough to fill up
+ * too much browser memory.
+ */
+HDX.cache = {};
+
+
+/**
  * Low-level function to make an AJAX call to HDX.
+ * Caches based on the URL.
+ *
+ * @param url URL of the CKAN API query.
+ * @param callback Function to call with the result of the CKAN API query.
  */
 HDX.doAjax = function(url, callback) {
+
+    // Cache hit?
+    if (HDX.cache[url] != null) {
+        console.log('hit cache ' + url);
+        callback(HDX.cache[url]);
+        return;
+    }
+
+    // Cache miss
+    console.log('missed cache: ' + url);
+    
     $('.spinner').show();
     $('#content').addClass('loading');
     var xhr = new XMLHttpRequest();
@@ -61,7 +85,8 @@ HDX.doAjax = function(url, callback) {
             $('.spinner').hide();
             $('#content').removeClass('loading');
             if (xhr.status == 200) {
-                callback(JSON.parse(xhr.responseText));
+                HDX.cache[url] = JSON.parse(xhr.responseText);
+                callback(HDX.cache[url]);
             } else {
                 throw "Bad CKAN request: " + xhr.status;
             }
@@ -74,7 +99,7 @@ HDX.doAjax = function(url, callback) {
 /**
  * High-level function to retrieve all groups.
  */
-HDX.getGroups = function(callback) {
+HDX.getCountries = function(callback) {
     HDX.doAjax(HDX.config.url + '/api/3/action/group_list?all_fields=1', function (data) {
         callback(data.result.sort(function (a, b) {
             if (a.display_name < b.display_name) {
@@ -92,7 +117,7 @@ HDX.getGroups = function(callback) {
 /**
  * High-level function to retrieve a group.
  */
-HDX.getGroup = function(id, callback) {
+HDX.getCountry = function(id, callback) {
     var url = HDX.config.url
         + '/api/3/action/group_show?id='
         + encodeURIComponent(id);
@@ -185,7 +210,7 @@ HDX.restoreHash = function() {
     }
     var hashParts = window.location.hash.substr(1).split(',').map(decodeURIComponent);
     if (hashParts[0]) {
-        HDX.getGroup(hashParts[0], function (group) {
+        HDX.getCountry(hashParts[0], function (group) {
             if (hashParts[1]) {
                 HDX.getTag(hashParts[1], function (tag) {
                     if (hashParts[2]) {
@@ -221,7 +246,7 @@ HDX.renderGroups = function() {
         return node;
     }
 
-    HDX.getGroups(function (groups) {
+    HDX.getCountries(function (groups) {
         var node = $('#content');
         node.empty();
         for (i in groups) {
