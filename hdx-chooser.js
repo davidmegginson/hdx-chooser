@@ -346,35 +346,35 @@ HDX.renderGroup = function(group) {
 
 };
 
-HDX.drawDataset = function (dataset) {
-    var node = $('<div class="dataset">');
-    var source = null;
-    for (i in dataset.extras) {
-        if (dataset.extras[i].key == 'dataset_source') {
-            source = dataset.extras[i].value;
-            break;
-        }
-    }
-    node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-    node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
-    node.append($('<span class="icon-source">').text(source || dataset.organization.title));
-    node.click(function (event) {
-        HDX.renderDataset(group, tag, dataset);
-    });
-    return node;
-};
-
-
 /**
  * Render the datasets for a country (group) + tag combination.
  */
 HDX.renderTag = function (group, tag) {
 
+    function drawDataset(dataset) {
+        var node = $('<div class="dataset">');
+        var source = null;
+        for (i in dataset.extras) {
+            if (dataset.extras[i].key == 'dataset_source') {
+                source = dataset.extras[i].value;
+                break;
+            }
+        }
+        node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
+        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
+        node.append($('<span class="icon-source">').text(source || dataset.organization.title));
+        node.click(function (event) {
+            HDX.renderDataset(group, tag, dataset);
+        });
+        return node;
+    };
+
+
     HDX.getDatasets(group.name, tag.name, function (datasets) {
         var node = $('#content');
         node.empty();
         for (i in datasets) {
-            node.append(HDX.drawDataset(datasets[i]));
+            node.append(drawDataset(datasets[i]));
         }
 
         HDX.updateHash(group, tag);
