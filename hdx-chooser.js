@@ -264,7 +264,7 @@ HDX.restoreHash = function() {
             }
         });
     } else {
-        HDX.renderGroups();
+        HDX.renderCountries();
     }
     HDX.savedHash = window.location.hash;
 }
@@ -272,9 +272,9 @@ HDX.restoreHash = function() {
 /**
  * Render countries (groups) as folders.
  */
-HDX.renderGroups = function() {
+HDX.renderCountries = function() {
 
-    function drawGroup(group) {
+    function drawCountry(group) {
         var node = $('<div class="folder">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(group.display_name + ' (' + group.package_count + ')'));
@@ -288,7 +288,7 @@ HDX.renderGroups = function() {
         var node = $('#content');
         node.empty();
         for (i in groups) {
-            node.append(drawGroup(groups[i]));
+            node.append(drawCountry(groups[i]));
         }
         HDX.updateHash();
         document.title = 'Countries (HDX)';
