@@ -151,6 +151,32 @@ HDX.getTag = function(id, callback) {
 
 
 /**
+ * Retrieve a list of datasets for a group/tag combination.
+ */
+HDX.getDatasets = function(countryName, tagName, callback) {
+
+    var url = HDX.config.url 
+        + '/api/search/dataset?q=groups:'
+        + encodeURIComponent(countryName) 
+        + '&rows=9999&all_fields=1';
+
+    HDX.doAjax(url, function (data) {
+        var datasets = [];
+
+        for (i in data.results) {
+            dataset = data.results[i];
+            if ($.inArray(tagName, dataset.tags) > -1) {
+                datasets.push(dataset);
+            }
+        }
+
+        callback(datasets);
+    });
+
+};
+
+
+/**
  * High-level function to retrieve a dataset.
  */
 HDX.getDataset = function(id, callback) {
@@ -339,16 +365,7 @@ HDX.renderTag = function (group, tag) {
         + encodeURIComponent(group.name) 
         + '&rows=9999&all_fields=1';
 
-    HDX.doAjax(url, function (data) {
-        var datasets = [];
-
-        for (i in data.results) {
-            dataset = data.results[i];
-            if ($.inArray(tag.name, dataset.tags) > -1) {
-                datasets.push(dataset);
-            }
-        }
-
+    HDX.getDatasets(group.name, tag.name, function (datasets) {
         var node = $('#content');
         node.empty();
         for (i in datasets) {
