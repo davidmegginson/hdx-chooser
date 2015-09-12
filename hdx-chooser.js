@@ -100,7 +100,7 @@ HDX.doAjax = function(url, callback) {
  * High-level function to retrieve all groups.
  */
 HDX.getCountries = function(callback) {
-    HDX.doAjax(HDX.config.url + '/api/3/action/group_list?all_fields=1', function (data) {
+    HDX.doAjax(HDX.config.url + '/api/action/group_list?all_fields=1', function (data) {
         callback(data.result.sort(function (a, b) {
             if (a.display_name < b.display_name) {
                 return -1;
@@ -124,7 +124,7 @@ HDX.getCountry = function(id, callback) {
     // by pulling an abbreviated group description
     // from the first package in the group.
     var url = HDX.config.url
-        + '/api/3/action/group_package_show?limit=1&id='
+        + '/api/action/group_package_show?limit=1&id='
         + encodeURIComponent(id);
     HDX.doAjax(url, function (data) {
         groups = data.result[0].groups;
@@ -142,7 +142,7 @@ HDX.getCountry = function(id, callback) {
  */
 HDX.getTag = function(id, callback) {
     var url = HDX.config.url
-        + '/api/3/action/tag_show?id='
+        + '/api/action/tag_show?id='
         + encodeURIComponent(id);
     HDX.doAjax(url, function (data) {
         callback(data.result);
@@ -156,17 +156,19 @@ HDX.getTag = function(id, callback) {
 HDX.getDatasets = function(countryName, tagName, callback) {
 
     var url = HDX.config.url 
-        + '/api/search/dataset?q=groups:'
-        + encodeURIComponent(countryName) 
-        + '&rows=9999&all_fields=1';
+        + '/api/action/tag_show?id='
+        + encodeURIComponent(tagName);
 
     HDX.doAjax(url, function (data) {
-        var datasets = [];
+        var datasets = [], dataset;
 
-        for (i in data.results) {
-            dataset = data.results[i];
-            if ($.inArray(tagName, dataset.tags) > -1) {
-                datasets.push(dataset);
+        for (i in data.result.packages) {
+            dataset = data.result.packages[i];
+            for (j in dataset.groups) {
+                if (dataset.groups[j].name == countryName) {
+                    datasets.push(dataset);
+                    break;
+                }
             }
         }
 
@@ -181,7 +183,7 @@ HDX.getDatasets = function(countryName, tagName, callback) {
  */
 HDX.getDataset = function(id, callback) {
     var url = HDX.config.url
-        + '/api/3/action/package_show?id='
+        + '/api/action/package_show?id='
         + encodeURIComponent(id);
     HDX.doAjax(url, function (data) {
         callback(data.result);
@@ -312,7 +314,7 @@ HDX.renderGroup = function(group) {
         return node;
     }
 
-    HDX.doAjax(HDX.config.url + '/api/3/action/group_package_show?id=' + encodeURIComponent(group.id), function (data) {
+    HDX.doAjax(HDX.config.url + '/api/action/group_package_show?id=' + encodeURIComponent(group.id), function (data) {
         var node = $('#content');
         var tagSet = {};
         var tagCounts = {};
@@ -350,10 +352,17 @@ HDX.renderGroup = function(group) {
 HDX.renderTag = function (group, tag) {
 
     function drawDataset(dataset) {
-        var node = $('<div class="dataset">')
+        var node = $('<div class="dataset">');
+        var source = null;
+        for (i in dataset.extras) {
+            if (dataset.extras[i].key == 'dataset_source') {
+                source = dataset.extras[i].value;
+                break;
+            }
+        }
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.res_name.length + ' file[s])'));
-        node.append($('<span class="icon-source">').text(dataset.extras.dataset_source || dataset.organization));
+        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
+        node.append($('<span class="icon-source">').text(source || dataset.organization.title));
         node.click(function (event) {
             HDX.renderDataset(group, tag, dataset);
         });
