@@ -115,7 +115,7 @@ HDX.getCountries = function(callback) {
 
 
 /**
- * High-level function to retrieve a group.
+ * High-level function to retrieve a country.
  */
 HDX.getCountry = function(id, callback) {
     // Can't use group_show, because HDX puts the whole
@@ -306,7 +306,7 @@ HDX.renderGroup = function(group) {
             return;
         }
         var node = $('<div class="folder">')
-        node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
+        node.append($('<span class="glyphicon glyphicon-tag icon">'));
         node.append($('<span class="icon-label">').text(tag.display_name + ' (' + count + ')'));
         node.click(function (event) {
             HDX.renderTag(group, tag);
@@ -314,15 +314,16 @@ HDX.renderGroup = function(group) {
         return node;
     }
 
-    HDX.doAjax(HDX.config.url + '/api/action/group_package_show?id=' + encodeURIComponent(group.id), function (data) {
+    HDX.doAjax(HDX.config.url + '/api/action/group_package_show?limit=99999&id=' + encodeURIComponent(group.id), function (data) {
+        var datasets = data.result;
         var node = $('#content');
         var tagSet = {};
         var tagCounts = {};
 
         // Count the tags first
-        for (i in data.result) {
-            for (j in data.result[i].tags) {
-                var tag = data.result[i].tags[j];
+        for (i in datasets) {
+            for (j in datasets[i].tags) {
+                var tag = datasets[i].tags[j];
                 tagSet[tag.name] = tag;
                 if (tagCounts[tag.name]) {
                     tagCounts[tag.name] += 1;
@@ -345,40 +346,35 @@ HDX.renderGroup = function(group) {
 
 };
 
+HDX.drawDataset = function (dataset) {
+    var node = $('<div class="dataset">');
+    var source = null;
+    for (i in dataset.extras) {
+        if (dataset.extras[i].key == 'dataset_source') {
+            source = dataset.extras[i].value;
+            break;
+        }
+    }
+    node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
+    node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
+    node.append($('<span class="icon-source">').text(source || dataset.organization.title));
+    node.click(function (event) {
+        HDX.renderDataset(group, tag, dataset);
+    });
+    return node;
+};
+
 
 /**
  * Render the datasets for a country (group) + tag combination.
  */
 HDX.renderTag = function (group, tag) {
 
-    function drawDataset(dataset) {
-        var node = $('<div class="dataset">');
-        var source = null;
-        for (i in dataset.extras) {
-            if (dataset.extras[i].key == 'dataset_source') {
-                source = dataset.extras[i].value;
-                break;
-            }
-        }
-        node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
-        node.append($('<span class="icon-source">').text(source || dataset.organization.title));
-        node.click(function (event) {
-            HDX.renderDataset(group, tag, dataset);
-        });
-        return node;
-    }
-    
-    var url = HDX.config.url 
-        + '/api/search/dataset?q=groups:'
-        + encodeURIComponent(group.name) 
-        + '&rows=9999&all_fields=1';
-
     HDX.getDatasets(group.name, tag.name, function (datasets) {
         var node = $('#content');
         node.empty();
         for (i in datasets) {
-            node.append(drawDataset(datasets[i]));
+            node.append(HDX.drawDataset(datasets[i]));
         }
 
         HDX.updateHash(group, tag);
