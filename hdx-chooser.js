@@ -98,10 +98,12 @@ HDX._doAjax = function(url, callback) {
 
 /**
  * Retrieve a list of county objects asynchronously.
- * @param callback Function that will receive the list.
+ * @param callback The function to receive the asynchronous result.
  */
 HDX.getCountries = function(callback) {
-    HDX._doAjax(HDX.config.url + '/api/action/group_list?all_fields=1', function (data) {
+    var url = HDX.config.url 
+        + '/api/action/group_list?all_fields=1';
+    HDX._doAjax(url, function (data) {
         callback(data.result.sort(function (a, b) {
             return a.display_name.localeCompare(b.display_name);
         }));
@@ -110,23 +112,28 @@ HDX.getCountries = function(callback) {
 
 
 /**
- * High-level function to retrieve a country.
+ * Retrieve a country object asynchronously.
+ * @param countryName The country abbreviation (e.g. "gin")
+ * @param callback The function to receive the asynchronous result.
  */
-HDX.getCountry = function(id, callback) {
+HDX.getCountry = function(countryName, callback) {
     // Can't use group_show, because HDX puts the whole
     // boundary outline there, so we get an enormous
     // return value.  Kludge around the problem
     // by pulling an abbreviated group description
-    // from the first package in the group.
+    // from the first dataset for the country, then finding
+    // the country summary in it.
     var url = HDX.config.url
         + '/api/action/group_package_show?limit=1&id='
-        + encodeURIComponent(id);
+        + encodeURIComponent(countryName);
     HDX._doAjax(url, function (data) {
         countries = data.result[0].groups;
+        // there could be more than one country
         for (i in countries) {
-            if (countries[i].name == id) {
+            if (countries[i].name == countryName) {
+                // found it! return the asynchronous result
                 callback(countries[i]);
-                return;
+                return; // no need to look further
             }
         }
     });
@@ -135,10 +142,19 @@ HDX.getCountry = function(id, callback) {
 
 /**
  * Retrieve tags for a country.
+ * There is no simple CKAN API call to do this, so we have to
+ * retrieve all the datasets ("packages") for the country ("group"),
+ * scan each one to see what tags it uses, and keep a master list
+ * of the tags, with counts added. Finally, we sort and return
+ * the list of tags.
+ * @param countryName The shortname for the country (e.g. "gin")
+ * @param callback The function to receive the asynchronous result.
  */
 HDX.getCountryTags = function(countryName, callback) {
-
-    HDX._doAjax(HDX.config.url + '/api/action/group_package_show?limit=99999&id=' + encodeURIComponent(countryName), function (data) {
+    var url = HDX.config.url 
+        + '/api/action/group_package_show?limit=99999&id=' 
+        + encodeURIComponent(countryName);
+    HDX._doAjax(url, function (data) {
         var datasets = data.result;
         var tagSet, tags, tag;
 
@@ -156,7 +172,7 @@ HDX.getCountryTags = function(countryName, callback) {
             }
         }
 
-        // add the tags in alphabetical order
+        // list the tags in alphabetical order
         tags = [];
         Object.keys(tagSet).sort().forEach(function (tagName) {
             tags.push(tagSet[tagName]);
@@ -170,12 +186,14 @@ HDX.getCountryTags = function(countryName, callback) {
 
 
 /**
- * High-level function to retrieve a tag.
+ * Retrieve information about a tag.
+ * @param tagName The shortname for the tag (e.g. "3w")
+ * @param callback The function to receive the asynchronous result.
  */
-HDX.getTag = function(id, callback) {
+HDX.getTag = function(tagName, callback) {
     var url = HDX.config.url
         + '/api/action/tag_show?id='
-        + encodeURIComponent(id);
+        + encodeURIComponent(tagName);
     HDX._doAjax(url, function (data) {
         callback(data.result);
     });
@@ -184,8 +202,11 @@ HDX.getTag = function(id, callback) {
 
 /**
  * Retrieve a list of datasets for a country/tag combination.
+ * @param countryName The shortname for the country (e.g. "gin")
+ * @param tagName The shortname for the tag (e.g. "3w")
+ * @param callback The function to receive the asynchronous result.
  */
-HDX.getDatasets = function(countryName, tagName, callback) {
+HDX.getCountryTagDatasets = function(countryName, tagName, callback) {
 
     var url = HDX.config.url 
         + '/api/action/tag_show?id='
@@ -211,12 +232,14 @@ HDX.getDatasets = function(countryName, tagName, callback) {
 
 
 /**
- * High-level function to retrieve a dataset.
+ * Retrieve a dataset and its resources
+ * @param datasetName The shortname for the dataset (e.g. "guinea_3w_data").
+ * @param callback The function to receive the asynchronous result.
  */
-HDX.getDataset = function(id, callback) {
+HDX.getDataset = function(datasetName, callback) {
     var url = HDX.config.url
         + '/api/action/package_show?id='
-        + encodeURIComponent(id);
+        + encodeURIComponent(datasetName);
     HDX._doAjax(url, function (data) {
         callback(data.result);
     });
@@ -383,7 +406,7 @@ HDX.renderTag = function (country, tag) {
     };
 
 
-    HDX.getDatasets(country.name, tag.name, function (datasets) {
+    HDX.getCountryTagDatasets(country.name, tag.name, function (datasets) {
         var node = $('#content');
         node.empty();
         for (i in datasets) {
