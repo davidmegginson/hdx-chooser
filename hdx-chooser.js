@@ -64,7 +64,7 @@ HDX.cache = {};
  * @param url URL of the CKAN API query.
  * @param callback Function to call with the result of the CKAN API query.
  */
-HDX.doAjax = function(url, callback) {
+HDX._doAjax = function(url, callback) {
 
     // Cache hit?
     if (HDX.cache[url] != null) {
@@ -97,18 +97,13 @@ HDX.doAjax = function(url, callback) {
 
 
 /**
- * High-level function to retrieve all countrys.
+ * Retrieve a list of county objects asynchronously.
+ * @param callback Function that will receive the list.
  */
 HDX.getCountries = function(callback) {
-    HDX.doAjax(HDX.config.url + '/api/action/group_list?all_fields=1', function (data) {
+    HDX._doAjax(HDX.config.url + '/api/action/group_list?all_fields=1', function (data) {
         callback(data.result.sort(function (a, b) {
-            if (a.display_name < b.display_name) {
-                return -1;
-            } else if (a.display_name > b.display_name) {
-                return 1;
-            } else {
-                return 0;
-            }
+            return a.display_name.localeCompare(b.display_name);
         }));
     });
 };
@@ -126,7 +121,7 @@ HDX.getCountry = function(id, callback) {
     var url = HDX.config.url
         + '/api/action/group_package_show?limit=1&id='
         + encodeURIComponent(id);
-    HDX.doAjax(url, function (data) {
+    HDX._doAjax(url, function (data) {
         countries = data.result[0].groups;
         for (i in countries) {
             if (countries[i].name == id) {
@@ -143,7 +138,7 @@ HDX.getCountry = function(id, callback) {
  */
 HDX.getCountryTags = function(countryName, callback) {
 
-    HDX.doAjax(HDX.config.url + '/api/action/group_package_show?limit=99999&id=' + encodeURIComponent(countryName), function (data) {
+    HDX._doAjax(HDX.config.url + '/api/action/group_package_show?limit=99999&id=' + encodeURIComponent(countryName), function (data) {
         var datasets = data.result;
         var tagSet, tags, tag;
 
@@ -167,6 +162,7 @@ HDX.getCountryTags = function(countryName, callback) {
             tags.push(tagSet[tagName]);
         });
 
+        // return the asynchronous result
         callback(tags);
     });
 
@@ -180,7 +176,7 @@ HDX.getTag = function(id, callback) {
     var url = HDX.config.url
         + '/api/action/tag_show?id='
         + encodeURIComponent(id);
-    HDX.doAjax(url, function (data) {
+    HDX._doAjax(url, function (data) {
         callback(data.result);
     });
 };
@@ -195,7 +191,7 @@ HDX.getDatasets = function(countryName, tagName, callback) {
         + '/api/action/tag_show?id='
         + encodeURIComponent(tagName);
 
-    HDX.doAjax(url, function (data) {
+    HDX._doAjax(url, function (data) {
         var datasets = [], dataset;
 
         for (i in data.result.packages) {
@@ -221,7 +217,7 @@ HDX.getDataset = function(id, callback) {
     var url = HDX.config.url
         + '/api/action/package_show?id='
         + encodeURIComponent(id);
-    HDX.doAjax(url, function (data) {
+    HDX._doAjax(url, function (data) {
         callback(data.result);
     });
 };
