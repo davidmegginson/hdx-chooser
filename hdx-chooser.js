@@ -1,7 +1,7 @@
 /**
  * Javascript support for an HDX resource chooser.
  *
- * Shows a list of countries (at the root level), then tags, then
+ * Shows a list of locations (at the root level), then tags, then
  * datasets, all as folders.  Inside each dataset appear the resources
  * as files.
  *
@@ -100,7 +100,7 @@ HDX._doAjax = function(url, callback) {
  * Retrieve a list of county objects asynchronously.
  * @param callback The function to receive the asynchronous result.
  */
-HDX.getCountries = function(callback) {
+HDX.getLocations = function(callback) {
     var url = HDX.config.url 
         + '/api/action/group_list?all_fields=1';
     HDX._doAjax(url, function (data) {
@@ -112,27 +112,27 @@ HDX.getCountries = function(callback) {
 
 
 /**
- * Retrieve a country object asynchronously.
- * @param countryName The country abbreviation (e.g. "gin")
+ * Retrieve a location object asynchronously.
+ * @param locationName The location abbreviation (e.g. "gin")
  * @param callback The function to receive the asynchronous result.
  */
-HDX.getCountry = function(countryName, callback) {
+HDX.getLocation = function(locationName, callback) {
     // Can't use group_show, because HDX puts the whole
     // boundary outline there, so we get an enormous
     // return value.  Kludge around the problem
     // by pulling an abbreviated group description
-    // from the first dataset for the country, then finding
-    // the country summary in it.
+    // from the first dataset for the location, then finding
+    // the location summary in it.
     var url = HDX.config.url
         + '/api/action/group_package_show?limit=1&id='
-        + encodeURIComponent(countryName);
+        + encodeURIComponent(locationName);
     HDX._doAjax(url, function (data) {
-        countries = data.result[0].groups;
-        // there could be more than one country
-        for (i in countries) {
-            if (countries[i].name == countryName) {
+        locations = data.result[0].groups;
+        // there could be more than one location
+        for (i in locations) {
+            if (locations[i].name == locationName) {
                 // found it! return the asynchronous result
-                callback(countries[i]);
+                callback(locations[i]);
                 return; // no need to look further
             }
         }
@@ -141,19 +141,19 @@ HDX.getCountry = function(countryName, callback) {
 
 
 /**
- * Retrieve tags for a country.
+ * Retrieve tags for a location.
  * There is no simple CKAN API call to do this, so we have to
- * retrieve all the datasets ("packages") for the country ("group"),
+ * retrieve all the datasets ("packages") for the location ("group"),
  * scan each one to see what tags it uses, and keep a master list
  * of the tags, with counts added. Finally, we sort and return
  * the list of tags.
- * @param countryName The shortname for the country (e.g. "gin")
+ * @param locationName The shortname for the location (e.g. "gin")
  * @param callback The function to receive the asynchronous result.
  */
-HDX.getCountryTags = function(countryName, callback) {
+HDX.getLocationTags = function(locationName, callback) {
     var url = HDX.config.url 
         + '/api/action/group_package_show?limit=99999&id=' 
-        + encodeURIComponent(countryName);
+        + encodeURIComponent(locationName);
     HDX._doAjax(url, function (data) {
         var datasets = data.result;
         var tagSet, tags, tag;
@@ -201,12 +201,12 @@ HDX.getTag = function(tagName, callback) {
 
 
 /**
- * Retrieve a list of datasets for a country/tag combination.
- * @param countryName The shortname for the country (e.g. "gin")
+ * Retrieve a list of datasets for a location/tag combination.
+ * @param locationName The shortname for the location (e.g. "gin")
  * @param tagName The shortname for the tag (e.g. "3w")
  * @param callback The function to receive the asynchronous result.
  */
-HDX.getCountryTagDatasets = function(countryName, tagName, callback) {
+HDX.getLocationTagDatasets = function(locationName, tagName, callback) {
 
     var url = HDX.config.url 
         + '/api/action/tag_show?id='
@@ -218,7 +218,7 @@ HDX.getCountryTagDatasets = function(countryName, tagName, callback) {
         for (i in data.result.packages) {
             dataset = data.result.packages[i];
             for (j in dataset.groups) {
-                if (dataset.groups[j].name == countryName) {
+                if (dataset.groups[j].name == locationName) {
                     datasets.push(dataset);
                     break;
                 }
@@ -247,14 +247,24 @@ HDX.getDataset = function(datasetName, callback) {
 
 
 /**
+ * Clear all display areas.
+ */
+HDX.clearDisplay = function() {
+    $('#overview').empty();
+    $('#content').empty();
+    window.scroll(0, 0);
+};
+
+
+/**
  * Update the fragment identifier (hash) with the current context.
  */
-HDX.updateHash = function(country, tag, dataset) {
+HDX.updateHash = function(location, tag, dataset) {
 
-    function makeHash(country, tag, dataset) {
+    function makeHash(location, tag, dataset) {
         hash = '';
-        if (country) {
-            hash += encodeURIComponent(country.name);
+        if (location) {
+            hash += encodeURIComponent(location.name);
             if (tag) {
                 hash += ',' + encodeURIComponent(tag.name);
                 if (dataset) {
@@ -265,7 +275,7 @@ HDX.updateHash = function(country, tag, dataset) {
         return hash;
     }
 
-    var hash = makeHash(country, tag, dataset);
+    var hash = makeHash(location, tag, dataset);
     if (hash) {
         window.location.hash ='#' +  hash;
     }
@@ -281,13 +291,13 @@ HDX.updateHash = function(country, tag, dataset) {
     }
 
     $('.breadcrumb').empty();
-    showCrumb('Countries', '');
-    if (country) {
-        showCrumb(country.display_name, makeHash(country));
+    showCrumb('Locations', '');
+    if (location) {
+        showCrumb(location.display_name, makeHash(location));
         if (tag) {
-            showCrumb(tag.display_name, makeHash(country, tag));
+            showCrumb(tag.display_name, makeHash(location, tag));
             if (dataset) {
-                showCrumb(dataset.title, makeHash(country, tag, dataset));
+                showCrumb(dataset.title, makeHash(location, tag, dataset));
             }
         }
     }
@@ -303,58 +313,84 @@ HDX.restoreHash = function() {
     }
     var hashParts = window.location.hash.substr(1).split(',').map(decodeURIComponent);
     if (hashParts[0]) {
-        HDX.getCountry(hashParts[0], function (country) {
+        HDX.getLocation(hashParts[0], function (location) {
             if (hashParts[1]) {
                 HDX.getTag(hashParts[1], function (tag) {
                     if (hashParts[2]) {
                         HDX.getDataset(hashParts[2], function (dataset) {
-                            HDX.renderDataset(country, tag, dataset);
+                            HDX.renderDataset(location, tag, dataset);
                         });
                     } else {
-                        HDX.renderTag(country, tag);
+                        HDX.renderTag(location, tag);
                     }
                 });
             } else {
-                HDX.renderCountry(country);
+                HDX.renderLocation(location);
             }
         });
     } else {
-        HDX.renderCountries();
+        HDX.renderLocations();
     }
     HDX.savedHash = window.location.hash;
 }
 
 /**
- * Render countries (groups) as folders.
+ * Render locations (groups) as folders.
  */
-HDX.renderCountries = function() {
+HDX.renderLocations = function() {
 
-    function drawCountry(country) {
+    function drawOverview(numLocations) {
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url + '/group';
+
+        node.append($('<dt>Total locations</dt>'));
+        node.append($('<dd>').text(numLocations));
+        node.append($('<dt>View on HDX</dt>'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
+
+    function drawLocation(location) {
         var node = $('<div class="folder">')
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-label">').text(country.display_name + ' (' + country.package_count + ')'));
+        node.append($('<span class="icon-label">').text(location.display_name + ' (' + location.package_count + ')'));
         node.click(function (event) {
-            HDX.renderCountry(country);
+            HDX.renderLocation(location);
         });
         return node;
     }
 
-    HDX.getCountries(function (countries) {
-        var node = $('#content');
-        node.empty();
-        for (i in countries) {
-            node.append(drawCountry(countries[i]));
+    HDX.getLocations(function (locations) {
+        HDX.clearDisplay();
+        $('#overview').append(drawOverview(locations.length));
+        for (i in locations) {
+            $('#content').append(drawLocation(locations[i]));
         }
         HDX.updateHash();
-        document.title = 'Countries (HDX)';
+        document.title = 'Locations (HDX)';
     });
 };
 
 
 /**
- * Render a single country (group) as a set of tag folders.
+ * Render a single location (group) as a set of tag folders.
  */
-HDX.renderCountry = function(country) {
+HDX.renderLocation = function(location) {
+
+    function drawOverview(numTags) {
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url
+            + '/group/'
+            + encodeURIComponent(location.name);
+
+        node.append($('<dt>').text('Location name'));
+        node.append($('<dd>').text(location.title));
+        node.append($('<dt>').text('Total tags'));
+        node.append($('<dd>').text(numTags));
+        node.append($('<dt>').text('View on HDX'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
 
     function drawTag(tag) {
         if (tag.vocabulary_id) {
@@ -364,28 +400,44 @@ HDX.renderCountry = function(country) {
         node.append($('<span class="glyphicon glyphicon-tag icon">'));
         node.append($('<span class="icon-label">').text(tag.display_name + ' (' + tag.package_count + ')'));
         node.click(function (event) {
-            HDX.renderTag(country, tag);
+            HDX.renderTag(location, tag);
         });
         return node;
     }
 
-    HDX.getCountryTags(country.name, function (tags) {
-        var node = $('#content');
-        node.empty();
+    HDX.getLocationTags(location.name, function (tags) {
+        HDX.clearDisplay();
+        $('#overview').append(drawOverview(tags.length));
         for (i in tags) {
-            node.append(drawTag(tags[i]));
+            $('#content').append(drawTag(tags[i]));
         }
-
-        HDX.updateHash(country);
-        document.title = country.display_name + ' (HDX)';
+        HDX.updateHash(location);
+        document.title = location.display_name + ' (HDX)';
     });
 
 };
 
 /**
- * Render the datasets for a country (group) + tag combination.
+ * Render the datasets for a location (group) + tag combination.
  */
-HDX.renderTag = function (country, tag) {
+HDX.renderTag = function (location, tag) {
+
+    function drawOverview(numDatasets) {
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url
+            + '/search?tags='
+            + encodeURIComponent(tag.name)
+            + '&groups='
+            + encodeURIComponent(location.name);
+
+        node.append($('<dt>').text('Tag'));
+        node.append($('<dd>').text(tag.display_name + ' (for ' + location.display_name + ')'));
+        node.append($('<dt>').text('Total datasets'));
+        node.append($('<dd>').text(numDatasets));
+        node.append($('<dt>').text('View on HDX'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
 
     function drawDataset(dataset) {
         var node = $('<div class="dataset">');
@@ -400,21 +452,23 @@ HDX.renderTag = function (country, tag) {
         node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
         node.append($('<span class="icon-source">').text(source || dataset.organization.title));
         node.click(function (event) {
-            HDX.renderDataset(country, tag, dataset);
+            HDX.renderDataset(location, tag, dataset);
         });
         return node;
     };
 
 
-    HDX.getCountryTagDatasets(country.name, tag.name, function (datasets) {
-        var node = $('#content');
-        node.empty();
+    HDX.getLocationTagDatasets(location.name, tag.name, function (datasets) {
+        var overviewNode = $('#overview');
+        var contentNode = $('#content');
+        HDX.clearDisplay();
+        overviewNode.append(drawOverview(datasets.length));
         for (i in datasets) {
-            node.append(drawDataset(datasets[i]));
+            contentNode.append(drawDataset(datasets[i]));
         }
 
-        HDX.updateHash(country, tag);
-        document.title = country.display_name + " - " + tag.display_name + ' (HDX)';
+        HDX.updateHash(location, tag);
+        document.title = location.display_name + " - " + tag.display_name + ' (HDX)';
     });
 };
 
@@ -422,7 +476,44 @@ HDX.renderTag = function (country, tag) {
 /**
  * Render a dataset as a collection of files (resources).
  */
-HDX.renderDataset = function(country, tag, dataset) {
+HDX.renderDataset = function(location, tag, dataset) {
+
+    function drawOverview() {
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url
+            + '/dataset/'
+            + dataset.name;
+        var locations = [];
+
+        for (i in dataset.groups) {
+            if (i < 5) {
+                locations.push(dataset.groups[i].display_name);
+            } else {
+                locations.push('etc. (' + dataset.groups.length + ' total)');
+                break;
+            }
+        }
+            
+        console.log(dataset);
+
+        node.append($('<dt>Dataset</dt>'));
+        node.append($('<dd>').text(dataset.title));
+        node.append($('<dt>Locations</dt>'));
+        node.append($('<dd>').text(locations.join(', ')));
+        node.append($('<dt>Uploader</dt>'));
+        node.append($('<dd>').text(dataset.organization.title));
+        if (dataset.dataset_source) {
+            node.append($('<dt>Source</dt>'));
+            node.append($('<dd>').text(dataset.dataset_source));
+        }
+        if (dataset.caveats) {
+            node.append($('<dt>Caveats</dt>'));
+            node.append($('<dd>').text(dataset.caveats));
+        }
+        node.append($('<dt>View on HDX</dt>'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
 
     function drawResource(resource) {
         var node = $('<div class="dataset">');
@@ -435,12 +526,15 @@ HDX.renderDataset = function(country, tag, dataset) {
     }
 
     HDX.getDataset(dataset.name, function (dataset) {
-        var node = $('#content');
-        node.empty();
+        var overviewNode = $('#overview');
+        var contentNode = $('#content');
+
+        HDX.clearDisplay();
+        overviewNode.append(drawOverview());
         for (i in dataset.resources) {
-            node.append(drawResource(dataset.resources[i]));
+            contentNode.append(drawResource(dataset.resources[i]));
         }
-        HDX.updateHash(country, tag, dataset);
+        HDX.updateHash(location, tag, dataset);
         document.title = dataset.title + ' (HDX)';
     });
 };

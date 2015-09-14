@@ -1,4 +1,4 @@
-#content {
+main {
     margin: 5em 2em 0;
 }
 
@@ -52,4 +52,24 @@ nav {
     position: fixed;
     top: 50%;
     left: 50%;
+}
+
+#overview {
+    font-size: 90%;
+}
+
+#overview dl {
+    display: block;
+    margin: 0;
+}
+
+#overview dl dt {
+    display: block;
+    float: left;
+    clear: left;
+    width: 10em;
+}
+
+#overview dl dd {
+    float: left;
 }
