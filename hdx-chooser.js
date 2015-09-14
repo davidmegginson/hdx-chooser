@@ -438,6 +438,7 @@ HDX.renderTag = function (location, tag) {
 
     function drawDataset(dataset) {
         var node = $('<div class="dataset">');
+        var icon = $('<div class="icon">');
         var source = null;
         for (i in dataset.extras) {
             if (dataset.extras[i].key == 'dataset_source') {
@@ -445,8 +446,10 @@ HDX.renderTag = function (location, tag) {
                 break;
             }
         }
-        node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-label">').text(dataset.title + ' (' + dataset.num_resources + ' file[s])'));
+        icon.append($('<span class="glyphicon glyphicon-folder-close">'));
+        icon.append($('<span class="icon-format">').text(dataset.num_resources + (dataset.num_resources > 1 ? ' files' : ' file')));
+        node.append(icon);
+        node.append($('<span class="icon-label">').text(dataset.title));
         node.append($('<span class="icon-source">').text(source || dataset.organization.title));
         node.click(function (event) {
             HDX.renderDataset(location, tag, dataset);
