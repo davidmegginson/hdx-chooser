@@ -508,7 +508,10 @@ HDX.renderDataset = function(location, tag, dataset) {
 
     function drawResource(resource) {
         var node = $('<div class="dataset">');
-        node.append($('<span class="glyphicon glyphicon-file icon">'));
+        var icon = $('<div class="icon">');
+        icon.append($('<span class="glyphicon glyphicon-file">'));
+        icon.append($('<span class="icon-format">').text(resource.format));
+        node.append(icon);
         node.append($('<span class="icon-label">').text(resource.name));
         node.click(function (event) {
             window.location.href = resource.url;

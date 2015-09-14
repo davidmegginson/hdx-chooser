@@ -25,23 +25,32 @@ nav {
     font-size: 200%;
 }
 
+.icon .icon-format {
+    display: block;
+    font-size: 30%;
+    margin-top: -1em;
+}
+
 .dataset {
-    margin: 2em 0;
+    margin-bottom: 3em;
 }
 
 .dataset .icon {
+    clear: left;
     float: left;
+    text-align: center;
+    width: 2em;
 }
 
 .dataset .icon-source {
     display: block;
-    margin-left: 3em;
+    margin-left: 4em;
     font-style: italic;
 }
 
 .dataset .icon-label {
     display: block;
-    margin-left: 3em;
+    margin-left: 4em;
 }
 
 #content.loading {
