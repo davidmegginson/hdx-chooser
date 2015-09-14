@@ -68,14 +68,11 @@ HDX._doAjax = function(url, callback) {
 
     // Cache hit?
     if (HDX.cache[url] != null) {
-        console.log('hit cache ' + url);
         callback(HDX.cache[url]);
         return;
     }
 
     // Cache miss
-    console.log('missed cache: ' + url);
-    
     $('.spinner').show();
     $('#content').addClass('loading');
     var xhr = new XMLHttpRequest();
@@ -494,8 +491,6 @@ HDX.renderDataset = function(location, tag, dataset) {
             }
         }
             
-        console.log(dataset);
-
         node.append($('<dt>Dataset</dt>'));
         node.append($('<dd>').text(dataset.title));
         node.append($('<dt>Locations</dt>'));
@@ -505,10 +500,6 @@ HDX.renderDataset = function(location, tag, dataset) {
         if (dataset.dataset_source) {
             node.append($('<dt>Source</dt>'));
             node.append($('<dd>').text(dataset.dataset_source));
-        }
-        if (dataset.caveats) {
-            node.append($('<dt>Caveats</dt>'));
-            node.append($('<dd>').text(dataset.caveats));
         }
         node.append($('<dt>View on HDX</dt>'));
         node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));

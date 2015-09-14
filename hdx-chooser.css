@@ -1,5 +1,5 @@
 main {
-    margin: 5em 2em 0;
+    margin: 3em 1em;
 }
 
 nav {
@@ -26,7 +26,7 @@ nav {
 }
 
 .dataset {
-    margin: 1em 0;
+    margin: 2em 0;
 }
 
 .dataset .icon {
@@ -72,4 +72,17 @@ nav {
 
 #overview dl dd {
     float: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breadcrumb {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin: 0;
+}
+
+.breadcrumb li {
+  display: inline;
 }
