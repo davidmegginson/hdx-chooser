@@ -1,6 +1,8 @@
 var hdx = {};
 
-hdx.chooserURL = 'hdx-chooser.html';
+if (!hdx.chooserURL) {
+    hdx.chooserURL = 'http://davidmegginson.github.io/hdx-chooser/hdx-chooser.html';
+}
 
 hdx.choose = function(callback) {
     hdx.callback = callback;

@@ -256,8 +256,9 @@ HDX.clearDisplay = function() {
 /**
  * Update the fragment identifier (hash) with the current context.
  */
-HDX.updateHash = function(location, tag, dataset) {
+HDX.updateContext = function(location, tag, dataset) {
 
+    // Generate a new fragment identifier to add to the URL
     function makeHash(location, tag, dataset) {
         hash = '';
         if (location) {
@@ -272,13 +273,7 @@ HDX.updateHash = function(location, tag, dataset) {
         return hash;
     }
 
-    var hash = makeHash(location, tag, dataset);
-    if (hash) {
-        window.location.hash ='#' +  hash;
-    }
-
-    HDX.savedHash = window.location.hash;
-
+    // Show a breadcrumb
     function showCrumb(text, hash) {
         if (hash == HDX.savedHash || '#' + hash == HDX.savedHash) {
             $('.breadcrumb').append($('<li>').text(text));
@@ -287,6 +282,16 @@ HDX.updateHash = function(location, tag, dataset) {
         }
     }
 
+    // Show the hash in the address bar
+    var hash = makeHash(location, tag, dataset);
+    if (hash) {
+        window.location.hash ='#' +  hash;
+    }
+
+    // Save the hash for future use
+    HDX.savedHash = window.location.hash;
+
+    // Redraw the breadcrumbs
     $('.breadcrumb').empty();
     showCrumb('Locations', '');
     if (location) {
@@ -363,7 +368,7 @@ HDX.renderLocations = function() {
         for (i in locations) {
             $('#content').append(drawLocation(locations[i]));
         }
-        HDX.updateHash();
+        HDX.updateContext();
         document.title = 'Locations (HDX)';
     });
 };
@@ -408,7 +413,7 @@ HDX.renderLocation = function(location) {
         for (i in tags) {
             $('#content').append(drawTag(tags[i]));
         }
-        HDX.updateHash(location);
+        HDX.updateContext(location);
         document.title = location.display_name + ' (HDX)';
     });
 
@@ -467,7 +472,7 @@ HDX.renderTag = function (location, tag) {
             contentNode.append(drawDataset(datasets[i]));
         }
 
-        HDX.updateHash(location, tag);
+        HDX.updateContext(location, tag);
         document.title = location.display_name + " - " + tag.display_name + ' (HDX)';
     });
 };
@@ -517,7 +522,11 @@ HDX.renderDataset = function(location, tag, dataset) {
         node.append(icon);
         node.append($('<span class="icon-label">').text(resource.name));
         node.click(function (event) {
-            window.location.href = resource.url;
+            if (window.opener) {
+                window.opener.postMessage(resource, "*");
+            } else {
+                window.location.href = resource.url;
+            }
         });
         return node;
     }
@@ -531,12 +540,15 @@ HDX.renderDataset = function(location, tag, dataset) {
         for (i in dataset.resources) {
             contentNode.append(drawResource(dataset.resources[i]));
         }
-        HDX.updateHash(location, tag, dataset);
+        HDX.updateContext(location, tag, dataset);
         document.title = dataset.title + ' (HDX)';
     });
 };
 
 
+//
+// Go!!!
+//
 HDX.setup();
 
 // end
