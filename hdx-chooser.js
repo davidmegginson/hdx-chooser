@@ -46,7 +46,7 @@ HDX.setup = function() {
         });
     }
 
-    $('#search-form').submit(HDX.search);
+    $('#search-form').submit(HDX.doSearch);
 };
 
 
@@ -239,6 +239,21 @@ HDX.getDataset = function(datasetName, callback) {
     var url = HDX.config.url
         + '/api/action/package_show?id='
         + encodeURIComponent(datasetName);
+    HDX._doAjax(url, function (data) {
+        callback(data.result);
+    });
+};
+
+
+/**
+ * Execute a fulltext search for datasets.
+ * @param query The search text.
+ * @param callback The function to receive the asynchronous result.
+ */
+HDX.getSearchResults = function(query, callback) {
+    var url = HDX.config.url
+        + '/api/action/package_search?rows=9999&q='
+        + encodeURIComponent(query);
     HDX._doAjax(url, function (data) {
         callback(data.result);
     });
@@ -547,10 +562,74 @@ HDX.renderDataset = function(location, tag, dataset) {
 
 
 /**
+ * Render the results of a search.
+ */
+HDX.renderSearchResults = function (query) {
+
+    function drawOverview(results) {
+        return $('<p>Overview TODO</p>'); // FIXME
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url
+            + '/search?tags='
+            + encodeURIComponent(tag.name)
+            + '&groups='
+            + encodeURIComponent(location.name);
+
+        node.append($('<dt>').text('Tag'));
+        node.append($('<dd>').text(tag.display_name + ' (for ' + location.display_name + ')'));
+        node.append($('<dt>').text('Total datasets'));
+        node.append($('<dd>').text(numDatasets));
+        node.append($('<dt>').text('View on HDX'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
+
+    function drawDataset(dataset) {
+        var node = $('<div class="dataset">');
+        var icon = $('<div class="icon">');
+        var source = null;
+        for (i in dataset.extras) {
+            if (dataset.extras[i].key == 'dataset_source') {
+                source = dataset.extras[i].value;
+                break;
+            }
+        }
+        icon.append($('<span class="glyphicon glyphicon-folder-close">'));
+        icon.append($('<span class="icon-format">').text(dataset.num_resources + (dataset.num_resources > 1 ? ' files' : ' file')));
+        node.append(icon);
+        node.append($('<span class="icon-label">').text(dataset.title));
+        node.append($('<span class="icon-source">').text(source || dataset.organization.title));
+        node.click(function (event) {
+            HDX.renderDataset(null, null, dataset);
+        });
+        return node;
+    };
+
+
+    HDX.getSearchResults(query, function (results) {
+        console.log(results);
+        var overviewNode = $('#overview');
+        var contentNode = $('#content');
+        HDX.clearDisplay();
+        overviewNode.append(drawOverview(results));
+        for (i in results.results) {
+            contentNode.append(drawDataset(results.results[i]));
+        }
+
+        //HDX.updateContext(location, tag);
+        //document.title = location.display_name + " - " + tag.display_name + ' (HDX)';
+    });
+};
+
+
+/**
  * Execute a fulltext search.
  */
-HDX.search = function () {
-    alert('Search!');
+HDX.doSearch = function () {
+    var query = $('#search-text').val();
+    HDX.renderSearchResults(query);
+    $('#navbar-collapse').collapse('hide');
+    return false;
 };
 
 //
