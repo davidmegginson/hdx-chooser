@@ -45,6 +45,8 @@ HDX.setup = function() {
             }
         });
     }
+
+    $('#search-form').submit(HDX.search);
 };
 
 
@@ -543,6 +545,13 @@ HDX.renderDataset = function(location, tag, dataset) {
     });
 };
 
+
+/**
+ * Execute a fulltext search.
+ */
+HDX.search = function () {
+    alert('Search!');
+};
 
 //
 // Go!!!
