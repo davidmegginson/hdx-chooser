@@ -46,7 +46,13 @@ HDX.setup = function() {
         });
     }
 
-    $('#search-form').submit(HDX.doSearch);
+    // handle submit on the search form
+    $('#search-form').submit(function () {
+        var query = $('#search-text').val();
+        HDX.renderSearchResults(query);
+        $('#navbar-collapse').collapse('hide');
+        return false;
+    });
 };
 
 
@@ -567,18 +573,15 @@ HDX.renderDataset = function(location, tag, dataset) {
 HDX.renderSearchResults = function (query) {
 
     function drawOverview(results) {
-        return $('<p>Overview TODO</p>'); // FIXME
         var node = $('<dl>');
         var hdxURL = HDX.config.url
-            + '/search?tags='
-            + encodeURIComponent(tag.name)
-            + '&groups='
-            + encodeURIComponent(location.name);
+            + '/dataset?q='
+            + encodeURIComponent(query);
 
-        node.append($('<dt>').text('Tag'));
-        node.append($('<dd>').text(tag.display_name + ' (for ' + location.display_name + ')'));
-        node.append($('<dt>').text('Total datasets'));
-        node.append($('<dd>').text(numDatasets));
+        node.append($('<dt>').text('Search query'));
+        node.append($('<dd>').text(query));
+        node.append($('<dt>').text('Matching datasets'));
+        node.append($('<dd>').text(results.count));
         node.append($('<dt>').text('View on HDX'));
         node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
         return node;
@@ -607,7 +610,6 @@ HDX.renderSearchResults = function (query) {
 
 
     HDX.getSearchResults(query, function (results) {
-        console.log(results);
         var overviewNode = $('#overview');
         var contentNode = $('#content');
         HDX.clearDisplay();
@@ -621,16 +623,6 @@ HDX.renderSearchResults = function (query) {
     });
 };
 
-
-/**
- * Execute a fulltext search.
- */
-HDX.doSearch = function () {
-    var query = $('#search-text').val();
-    HDX.renderSearchResults(query);
-    $('#navbar-collapse').collapse('hide');
-    return false;
-};
 
 //
 // Go!!!
