@@ -1,5 +1,9 @@
 main {
-    margin: 3em 1em;
+    padding: 60px 1em 0;
+}
+
+.navbar-brand {
+    font-weight: bold;
 }
 
 nav {

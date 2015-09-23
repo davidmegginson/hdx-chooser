@@ -275,10 +275,8 @@ HDX.updateContext = function(location, tag, dataset) {
 
     // Show a breadcrumb
     function showCrumb(text, hash) {
-        if (hash == HDX.savedHash || '#' + hash == HDX.savedHash) {
-            $('.breadcrumb').append($('<li>').text(text));
-        } else {
-            $('.breadcrumb').append($('<li>').append($('<a>').text(text).attr('href', '#' + hash)));
+        if (hash != HDX.savedHash && '#' + hash != HDX.savedHash) {
+            $('#breadcrumbs').append($('<li>').append($('<a>').text(text + ' \273').attr('href', '#' + hash)));
         }
     }
 
@@ -292,7 +290,7 @@ HDX.updateContext = function(location, tag, dataset) {
     HDX.savedHash = window.location.hash;
 
     // Redraw the breadcrumbs
-    $('.breadcrumb').empty();
+    $('#breadcrumbs').empty();
     showCrumb('Locations', '');
     if (location) {
         showCrumb(location.display_name, makeHash(location));
