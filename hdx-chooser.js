@@ -278,13 +278,20 @@ HDX.clearDisplay = function() {
 
 /**
  * Update the fragment identifier (hash) with the current context.
+ *
+ * FIXME: kludgy right now, with search tacked on end
  */
-HDX.updateContext = function(location, tag, dataset) {
+HDX.updateContext = function(location, tag, dataset, query) {
 
     // Generate a new fragment identifier to add to the URL
-    function makeHash(location, tag, dataset) {
+    function makeHash(location, tag, dataset, query) {
         hash = '';
-        if (location) {
+        if (query) {
+            hash += 'q=' + encodeURIComponent(query);
+            if (dataset) {
+                hash += ',' + encodeURIComponent(dataset.name);
+            }
+        } else if (location) {
             hash += encodeURIComponent(location.name);
             if (tag) {
                 hash += ',' + encodeURIComponent(tag.name);
@@ -299,12 +306,17 @@ HDX.updateContext = function(location, tag, dataset) {
     // Show a breadcrumb
     function showCrumb(text, hash) {
         if (hash != HDX.savedHash && '#' + hash != HDX.savedHash) {
-            $('#breadcrumbs').append($('<li>').append($('<a>').text(text + ' \273').attr('href', '#' + hash)));
+            var link = $('<a>').text(text + ' \273').attr('href', '#' + hash);
+            link.click(function (event) {
+                $('#navbar-collapse').collapse('hide');
+                return true;
+            });
+            $('#breadcrumbs').append($('<li>').append(link));
         }
     }
 
     // Show the hash in the address bar
-    var hash = makeHash(location, tag, dataset);
+    var hash = makeHash(location, tag, dataset, query);
     if (hash) {
         window.location.hash ='#' +  hash;
     }
@@ -315,12 +327,21 @@ HDX.updateContext = function(location, tag, dataset) {
     // Redraw the breadcrumbs
     $('#breadcrumbs').empty();
     showCrumb('Locations', '');
-    if (location) {
-        showCrumb(location.display_name, makeHash(location));
-        if (tag) {
-            showCrumb(tag.display_name, makeHash(location, tag));
-            if (dataset) {
-                showCrumb(dataset.title, makeHash(location, tag, dataset));
+    if (query) {
+        $('#search-text').val(query);
+        showCrumb('Search "' + query + '"', makeHash(null, null, null, query));
+        if (dataset) {
+            showCrumb(dataset.title, makeHash(null, null, dataset, query));
+        }
+    } else {
+        $('#search-text').val('');
+        if (location) {
+            showCrumb(location.display_name, makeHash(location));
+            if (tag) {
+                showCrumb(tag.display_name, makeHash(location, tag));
+                if (dataset) {
+                    showCrumb(dataset.title, makeHash(location, tag, dataset));
+                }
             }
         }
     }
@@ -331,30 +352,46 @@ HDX.updateContext = function(location, tag, dataset) {
  * Restore the current context from the fragment identifier (hash).
  */
 HDX.restoreHash = function() {
-    if (window.location.hash == HDX.savedHash) {
+    var hash = window.location.hash.substr(1);
+    
+    if (hash == HDX.savedHash) {
         return;
     }
-    var hashParts = window.location.hash.substr(1).split(',').map(decodeURIComponent);
+
+    var hashParts = hash.split(',').map(decodeURIComponent);
+
     if (hashParts[0]) {
-        HDX.getLocation(hashParts[0], function (location) {
+        if (hashParts[0].startsWith('q=')) {
+            var query = hashParts[0].substr(2);
             if (hashParts[1]) {
-                HDX.getTag(hashParts[1], function (tag) {
-                    if (hashParts[2]) {
-                        HDX.getDataset(hashParts[2], function (dataset) {
-                            HDX.renderDataset(location, tag, dataset);
-                        });
-                    } else {
-                        HDX.renderTag(location, tag);
-                    }
+                HDX.getDataset(hashParts[1], function (dataset) {
+                    HDX.renderDataset(null, null, dataset, query);
                 });
             } else {
-                HDX.renderLocation(location);
+                HDX.renderSearchResults(query);
             }
-        });
+        } else {
+            HDX.getLocation(hashParts[0], function (location) {
+                if (hashParts[1]) {
+                    HDX.getTag(hashParts[1], function (tag) {
+                        if (hashParts[2]) {
+                            HDX.getDataset(hashParts[2], function (dataset) {
+                                HDX.renderDataset(location, tag, dataset);
+                            });
+                        } else {
+                            HDX.renderTag(location, tag);
+                        }
+                    });
+                } else {
+                    HDX.renderLocation(location);
+                }
+            });
+        }
     } else {
         HDX.renderLocations();
     }
-    HDX.savedHash = window.location.hash;
+    
+    HDX.savedHash = hash;
 }
 
 /**
@@ -502,7 +539,7 @@ HDX.renderTag = function (location, tag) {
 /**
  * Render a dataset as a collection of files (resources).
  */
-HDX.renderDataset = function(location, tag, dataset) {
+HDX.renderDataset = function(location, tag, dataset, query) {
 
     function drawOverview() {
         var node = $('<dl>');
@@ -561,7 +598,7 @@ HDX.renderDataset = function(location, tag, dataset) {
         for (i in dataset.resources) {
             contentNode.append(drawResource(dataset.resources[i]));
         }
-        HDX.updateContext(location, tag, dataset);
+        HDX.updateContext(location, tag, dataset, query);
         document.title = dataset.title + ' (HDX)';
     });
 };
@@ -603,7 +640,7 @@ HDX.renderSearchResults = function (query) {
         node.append($('<span class="icon-label">').text(dataset.title));
         node.append($('<span class="icon-source">').text(source || dataset.organization.title));
         node.click(function (event) {
-            HDX.renderDataset(null, null, dataset);
+            HDX.renderDataset(null, null, dataset, query);
         });
         return node;
     };
@@ -618,6 +655,7 @@ HDX.renderSearchResults = function (query) {
             contentNode.append(drawDataset(results.results[i]));
         }
 
+        HDX.updateContext(null, null, null, query);
         //HDX.updateContext(location, tag);
         //document.title = location.display_name + " - " + tag.display_name + ' (HDX)';
     });
