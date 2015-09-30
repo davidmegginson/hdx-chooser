@@ -412,7 +412,7 @@ HDX.renderLocations = function() {
     }
 
     function drawLocation(location) {
-        var node = $('<div class="folder">')
+        var node = $('<div class="folder">').attr('title', location.description);
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
         node.append($('<span class="icon-label">').text(location.display_name + ' (' + location.package_count + ')'));
         node.click(function (event) {
