@@ -499,7 +499,7 @@ HDX.renderTag = function (location, tag) {
     }
 
     function drawDataset(dataset) {
-        var node = $('<div class="dataset">');
+        var node = $('<div class="dataset">').attr('title', dataset.notes);
         var icon = $('<div class="icon">');
         var source = null;
         for (i in dataset.extras) {
@@ -574,7 +574,7 @@ HDX.renderDataset = function(location, tag, dataset, query) {
     }
 
     function drawResource(resource) {
-        var node = $('<div class="dataset">');
+        var node = $('<div class="dataset">').attr('title', resource.description);
         var icon = $('<div class="icon">');
         icon.append($('<span class="glyphicon glyphicon-file">'));
         icon.append($('<span class="icon-format">').text(resource.format));
@@ -624,7 +624,7 @@ HDX.renderSearchResults = function (query) {
     }
 
     function drawDataset(dataset) {
-        var node = $('<div class="dataset">');
+        var node = $('<div class="dataset">').attr('title', dataset.notes);
         var icon = $('<div class="icon">');
         var source = null;
         for (i in dataset.extras) {
