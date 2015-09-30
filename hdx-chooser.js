@@ -271,6 +271,7 @@ HDX.getSearchResults = function(query, callback) {
  */
 HDX.clearDisplay = function() {
     $('#overview').empty();
+    $('#overview-title').text('Overview');
     $('#content').empty();
     window.scroll(0, 0);
 };
@@ -326,7 +327,7 @@ HDX.updateContext = function(location, tag, dataset, query) {
 
     // Redraw the breadcrumbs
     $('#breadcrumbs').empty();
-    showCrumb('Locations', '');
+    showCrumb('All locations', '');
     if (query) {
         $('#search-text').val(query);
         showCrumb('Search "' + query + '"', makeHash(null, null, null, query));
@@ -422,6 +423,7 @@ HDX.renderLocations = function() {
 
     HDX.getLocations(function (locations) {
         HDX.clearDisplay();
+        $('#overview-title').text("All locations");
         $('#overview').append(drawOverview(locations.length));
         for (i in locations) {
             $('#content').append(drawLocation(locations[i]));
@@ -443,8 +445,6 @@ HDX.renderLocation = function(location) {
             + '/group/'
             + encodeURIComponent(location.name);
 
-        node.append($('<dt>').text('Location name'));
-        node.append($('<dd>').text(location.title));
         node.append($('<dt>').text('Total tags'));
         node.append($('<dd>').text(numTags));
         node.append($('<dt>').text('View on HDX'));
@@ -467,6 +467,7 @@ HDX.renderLocation = function(location) {
 
     HDX.getLocationTags(location.name, function (tags) {
         HDX.clearDisplay();
+        $('#overview-title').text("Tags for " + location.display_name);
         $('#overview').append(drawOverview(tags.length));
         for (i in tags) {
             $('#content').append(drawTag(tags[i]));
@@ -490,8 +491,6 @@ HDX.renderTag = function (location, tag) {
             + '&groups='
             + encodeURIComponent(location.name);
 
-        node.append($('<dt>').text('Tag'));
-        node.append($('<dd>').text(tag.display_name + ' (for ' + location.display_name + ')'));
         node.append($('<dt>').text('Total datasets'));
         node.append($('<dd>').text(numDatasets));
         node.append($('<dt>').text('View on HDX'));
@@ -522,12 +521,11 @@ HDX.renderTag = function (location, tag) {
 
 
     HDX.getLocationTagDatasets(location.name, tag.name, function (datasets) {
-        var overviewNode = $('#overview');
-        var contentNode = $('#content');
         HDX.clearDisplay();
-        overviewNode.append(drawOverview(datasets.length));
+        $('#overview-title').text("Datasets for tag \"" + tag.display_name + "\" in " + location.display_name);
+        $('#overview').append(drawOverview(datasets.length));
         for (i in datasets) {
-            contentNode.append(drawDataset(datasets[i]));
+            $('#content').append(drawDataset(datasets[i]));
         }
 
         HDX.updateContext(location, tag);
@@ -556,11 +554,14 @@ HDX.renderDataset = function(location, tag, dataset, query) {
                 break;
             }
         }
-            
-        node.append($('<dt>Dataset</dt>'));
-        node.append($('<dd>').text(dataset.title));
-        node.append($('<dt>Locations</dt>'));
+
+        var tags = $.map(dataset.tags, function (tag) { return tag.display_name });
+
+        console.log(dataset);
+        node.append($('<dt>Location(s)</dt>'));
         node.append($('<dd>').text(locations.join(', ')));
+        node.append($('<dt>Tag(s)</dt>'));
+        node.append($('<dd>').text(tags.join(', ')));
         node.append($('<dt>Uploader</dt>'));
         node.append($('<dd>').text(dataset.organization.title));
         if (dataset.dataset_source) {
@@ -590,13 +591,11 @@ HDX.renderDataset = function(location, tag, dataset, query) {
     }
 
     HDX.getDataset(dataset.name, function (dataset) {
-        var overviewNode = $('#overview');
-        var contentNode = $('#content');
-
         HDX.clearDisplay();
-        overviewNode.append(drawOverview());
+        $('#overview-title').text('Files in dataset "' + dataset.title + '"');
+        $('#overview').append(drawOverview());
         for (i in dataset.resources) {
-            contentNode.append(drawResource(dataset.resources[i]));
+            $('#content').append(drawResource(dataset.resources[i]));
         }
         HDX.updateContext(location, tag, dataset, query);
         document.title = dataset.title + ' (HDX)';
