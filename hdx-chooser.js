@@ -47,10 +47,14 @@ HDX.setup = function() {
     }
 
     // handle submit on the search form
-    $('#search-form').submit(function () {
-        var query = $('#search-text').val();
+    $('#search-form-1').submit(function () {
+        var query = $('#search-text-1').val();
         HDX.renderSearchResults(query);
-        $('#navbar-collapse').collapse('hide');
+        return false;
+    });
+    $('#search-form-2').submit(function () {
+        var query = $('#search-text-2').val();
+        HDX.renderSearchResults(query);
         return false;
     });
 };
@@ -329,7 +333,8 @@ HDX.updateContext = function(location, tag, dataset, query) {
     $('#breadcrumbs').empty();
     showCrumb('All locations', '');
     if (query) {
-        $('#search-text').val(query);
+        $('#search-text-1').val(query);
+        $('#search-text-2').val(query);
         showCrumb('Search "' + query + '"', makeHash(null, null, null, query));
         if (dataset) {
             showCrumb(dataset.title, makeHash(null, null, dataset, query));

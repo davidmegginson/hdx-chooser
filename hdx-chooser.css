@@ -110,3 +110,12 @@ nav {
 .panel-heading a.collapsed:after {
     content:"\e080";
 }
+
+@media(max-width: 767px) {
+
+    .navbar-form {
+        margin: 0 0 0 16px;
+        border: none;
+        padding: 8px 0;
+    }
+}
