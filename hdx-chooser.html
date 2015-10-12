@@ -9,33 +9,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body>
-    <nav id="nav-main" class="navbar navbar-inverse navbar-fixed-top">
-      <div class="container-fluid">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand"
-             href="https://data.hdx.rwlabs.org/">HDX file chooser</a>
-        </div>
+    <header>
+      <nav id="nav-main" class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container-fluid">
+          <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse" aria-expanded="false">
+              <span class="sr-only">Toggle navigation</span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+              <span class="icon-bar"></span>
+            </button>
+          </div>
 
-        <div class="collapse navbar-collapse" id="navbar-collapse">
-          <ul class="nav navbar-nav" id="breadcrumbs">
-          </ul>
-          <form class="navbar-form navbar-right" role="search" id="search-form">
-            <div class="input-group">
-              <input id='search-text' type="text" class="form-control" placeholder="Search HDX" required="required" />
-              <div class="input-group-btn">
-                <button type="submit" class="btn btn-default">Submit</button>
+          <div class="collapse navbar-collapse" id="navbar-collapse">
+            <ul class="nav navbar-nav" id="breadcrumbs">
+            </ul>
+            <form class="navbar-form navbar-right" role="search" id="search-form">
+              <div class="input-group">
+                <input id='search-text' type="text" class="form-control" placeholder="Search HDX" required="required" />
+                <div class="input-group-btn">
+                  <button type="submit" class="btn btn-default" aria-label="Search">
+                    <span class="glyphicon glyphicon-search"/>
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
+            </form>
+          </div>
         </div>
-      </div>
-    </nav>
+      </nav>
+    </header>
     <main>
       <section class="panel panel-primary">
         <div class="panel-heading">
@@ -48,15 +50,15 @@
             <div id="overview">
             </div>
           </div>
-      </section>
-      <section id="content">
-      </section>
-    </main>
-    <div class="spinner">
-      <div class="hexdots-loader">Loading...</div>
-    </div>
-  </body>
-  <script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
-  <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
-  <script type="text/javascript" src="hdx-chooser.js"></script>
-</html>
+        </section>
+        <section id="content">
+        </section>
+      </main>
+      <div class="spinner">
+        <div class="hexdots-loader">Loading...</div>
+      </div>
+    </body>
+    <script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="hdx-chooser.js"></script>
+  </html>
