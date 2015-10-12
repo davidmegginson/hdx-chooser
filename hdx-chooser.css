@@ -106,6 +106,7 @@ nav {
     float: right;
     color: grey;
 }
+
 .panel-heading a.collapsed:after {
     content:"\e080";
 }
