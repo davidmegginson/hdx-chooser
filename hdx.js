@@ -7,7 +7,7 @@ var hdx = {};
 
 // Set the URL if not already assigned
 if (!hdx.chooserURL) {
-    hdx.chooserURL = 'http://davidmegginson.github.io/hdx-chooser/hdx-chooser.html';
+    hdx.chooserURL = 'https://davidmegginson.github.io/hdx-chooser/hdx-chooser.html';
 }
 
 /**
