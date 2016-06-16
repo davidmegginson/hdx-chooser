@@ -23,7 +23,7 @@ var HDX = {};
  * Configuration information.
  */
 HDX.config = {
-    url: 'https://data.hdx.rwlabs.org'
+    url: 'https://data.humdata.org'
 };
 
 
