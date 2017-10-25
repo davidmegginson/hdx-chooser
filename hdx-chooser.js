@@ -222,7 +222,7 @@ HDX.getLocationTagDatasets = function(locationName, tagName, callback) {
         + encodeURIComponent(tagName)
         + '%22%20groups:%22'
         + encodeURIComponent(locationName)
-        + '%22';
+        + '%22&rows=99999&facet.limit=-1';
 
     HDX._doAjax(url, function (data) {
         callback(data.result.results);
