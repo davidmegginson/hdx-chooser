@@ -218,23 +218,14 @@ HDX.getTag = function(tagName, callback) {
 HDX.getLocationTagDatasets = function(locationName, tagName, callback) {
 
     var url = HDX.config.url 
-        + '/api/action/tag_show?id='
-        + encodeURIComponent(tagName);
+        + '/api/action/package_search?q=tags:%22'
+        + encodeURIComponent(tagName)
+        + '%22%20groups:%22'
+        + encodeURIComponent(locationName)
+        + '%22';
 
     HDX._doAjax(url, function (data) {
-        var datasets = [], dataset;
-
-        for (i in data.result.packages) {
-            dataset = data.result.packages[i];
-            for (j in dataset.groups) {
-                if (dataset.groups[j].name == locationName) {
-                    datasets.push(dataset);
-                    break;
-                }
-            }
-        }
-
-        callback(datasets);
+        callback(data.result.results);
     });
 
 };
