@@ -218,7 +218,7 @@ HDX.getTag = function(tagName, callback) {
 HDX.getLocationTagDatasets = function(locationName, tagName, callback) {
 
     var url = HDX.config.url 
-        + '/api/action/package_search?q=tags:%22'
+        + '/api/action/package_search?q=vocab_Topics:%22'
         + encodeURIComponent(tagName)
         + '%22%20groups:%22'
         + encodeURIComponent(locationName)
