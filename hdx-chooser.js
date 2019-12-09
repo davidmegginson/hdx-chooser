@@ -449,9 +449,6 @@ HDX.renderLocation = function(location) {
     }
 
     function drawTag(tag) {
-        if (tag.vocabulary_id) {
-            return;
-        }
         var node = $('<div class="folder">')
         node.append($('<span class="glyphicon glyphicon-tag icon">'));
         node.append($('<span class="icon-label">').text(tag.display_name + ' (' + tag.package_count + ')'));
