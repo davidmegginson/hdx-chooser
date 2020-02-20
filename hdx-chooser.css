@@ -64,6 +64,10 @@ nav {
     margin-left: 4em;
 }
 
+#content {
+    margin-top: 1ex;
+}
+
 #content.loading {
     color: #aaaaaa;
 }

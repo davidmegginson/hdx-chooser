@@ -69,6 +69,28 @@ HDX.setup = function() {
 HDX.cache = {};
 
 
+HDX.selectTab = function (tab) {
+    var node = $('#tabs');
+    $(node).children('li').each(function (i) {
+        $(this).removeClass('active');
+    });
+    switch (tab) {
+    case 'locs':
+        $('#locsTab').addClass('active');
+        HDX.renderLocations();
+        break;
+    case 'tags':
+        $('#tagsTab').addClass('active');
+        HDX.renderTags();
+        break;
+    case 'orgs':
+        $('#orgsTab').addClass('active');
+        HDX.renderOrgs();
+        break;
+    }
+};
+
+
 /**
  * Low-level function to make an AJAX call to HDX.
  * Caches based on the URL.
@@ -145,6 +167,33 @@ HDX.getLocation = function(locationName, callback) {
                 return; // no need to look further
             }
         }
+    });
+};
+
+
+/**
+ * Retrieve all tags.
+ */
+HDX.getTags = function (callback) {
+    var url = HDX.config.url
+        + '/api/action/tag_list?limit=99999&all_fields=true&vocabulary_id=Topics';
+    HDX._doAjax(url, function (data) {
+        var tags = data.result;
+        callback(tags);
+    });
+};
+
+
+/**
+ * Retrieve all organisations.
+ */
+HDX.getOrgs = function (callback) {
+    var url = HDX.config.url
+        + '/api/action/organization_list?limit=99999&all_fields=true';
+    HDX._doAjax(url, function (data) {
+        var orgs = data.result;
+        console.log(orgs);
+        callback(orgs);
     });
 };
 
@@ -428,6 +477,91 @@ HDX.renderLocations = function() {
         HDX.updateContext();
         document.title = 'Locations (HDX)';
     });
+};
+
+
+/**
+ * Render a single location (group) as a set of tag folders.
+ */
+HDX.renderTags = function() {
+
+    function drawOverview(numTags) {
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url
+            + '/group/'
+            + encodeURIComponent(location.name);
+
+        node.append($('<dt>').text('Total tags'));
+        node.append($('<dd>').text(numTags));
+        node.append($('<dt>').text('View on HDX'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
+
+    function drawTag(tag) {
+        var label = tag.display_name + ' (' + tag.package_count + ')';
+        var node = $('<div class="folder">').attr('title', label);
+        node.append($('<span class="glyphicon glyphicon-tag icon">'));
+        node.append($('<span class="icon-label">').text(label));
+        node.click(function (event) {
+            HDX.renderTag(location, tag);
+        });
+        return node;
+    }
+
+    HDX.getTags(function (tags) {
+        HDX.clearDisplay();
+        $('#overview-title').text("All tags");
+        $('#overview').append(drawOverview(tags.length));
+        for (i in tags) {
+            $('#content').append(drawTag(tags[i]));
+        }
+        document.title = 'All tags (HDX)';
+    });
+
+};
+
+
+/**
+ * Render a list of organizations
+ */
+HDX.renderOrgs = function() {
+
+    function drawOverview(numOrgs) {
+        var node = $('<dl>');
+        var hdxURL = HDX.config.url
+            + '/organization';
+
+        node.append($('<dt>').text('Total organizations'));
+        node.append($('<dd>').text(numOrgs));
+        node.append($('<dt>').text('View on HDX'));
+        node.append($('<dd>').append($('<a>').attr('target', '_blank').attr('href', hdxURL).text(hdxURL)));
+        return node;
+    }
+
+    function drawOrg(org) {
+        var label = org.display_name + ' (' + org.package_count + ')';
+        var node = $('<div class="folder">').attr('title', label);
+        node.append($('<span class="glyphicon glyphicon-user icon">'));
+        node.append($('<span class="icon-label">').text(label));
+        node.click(function (event) {
+            HDX.renderTag(location, tag);
+        });
+        return node;
+    }
+
+    HDX.getOrgs(function (orgs) {
+        HDX.clearDisplay();
+        $('#overview-title').text("All organisations");
+        $('#overview').append(drawOverview(orgs.length));
+        for (i in orgs) {
+            if (orgs[i].package_count > 0) {
+                $('#content').append(drawOrg(orgs[i]));
+            }
+        }
+        document.title = 'All organizations (HDX)';
+    });
+
 };
 
 
