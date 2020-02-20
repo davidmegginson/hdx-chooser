@@ -17,11 +17,18 @@ nav {
 .folder, .file {
     padding: .5em;
     width: 8em;
-    min-height: 8em;
+    height: 6em;
     float: left;
     text-align: center;
     word-wrap: break-word;
     word-wrap: break-all;
+}
+
+.icon-label {
+    display: block;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .icon {

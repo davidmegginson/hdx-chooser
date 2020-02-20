@@ -408,9 +408,10 @@ HDX.renderLocations = function() {
     }
 
     function drawLocation(location) {
-        var node = $('<div class="folder">').attr('title', location.description);
+        var label = location.display_name + ' (' + location.package_count + ')';
+        var node = $('<div class="node folder">').attr('title', label);
         node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
-        node.append($('<span class="icon-label">').text(location.display_name + ' (' + location.package_count + ')'));
+        node.append($('<span class="icon-label">').text(label));
         node.click(function (event) {
             HDX.renderLocation(location);
         });
@@ -449,9 +450,10 @@ HDX.renderLocation = function(location) {
     }
 
     function drawTag(tag) {
-        var node = $('<div class="folder">')
+        var label = tag.display_name + ' (' + tag.package_count + ')';
+        var node = $('<div class="folder">').attr('title', label);
         node.append($('<span class="glyphicon glyphicon-tag icon">'));
-        node.append($('<span class="icon-label">').text(tag.display_name + ' (' + tag.package_count + ')'));
+        node.append($('<span class="icon-label">').text(label));
         node.click(function (event) {
             HDX.renderTag(location, tag);
         });
@@ -550,7 +552,6 @@ HDX.renderDataset = function(location, tag, dataset, query) {
 
         var tags = $.map(dataset.tags, function (tag) { return tag.display_name });
 
-        console.log(dataset);
         node.append($('<dt>Location(s)</dt>'));
         node.append($('<dd>').text(locations.join(', ')));
         node.append($('<dt>Tag(s)</dt>'));
