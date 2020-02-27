@@ -62,15 +62,22 @@
             <div id="overview">
             </div>
           </div>
-        </section>
-        <section id="content">
-        </section>
-      </main>
-      <div class="spinner">
-        <div class="hexdots-loader">Loading...</div>
-      </div>
-    </body>
-    <script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
-    <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
-    <script type="text/javascript" src="hdx-chooser.js"></script>
-  </html>
+        </div>
+      </section>
+      <ul id="tabs" class="nav nav-pills">
+        <li id="locsTab" class="active" onclick="return HDX.selectTab('locs');"><a>Locations</a></li>
+        <li id="tagsTab"><a onclick="return HDX.selectTab('tags');">Tags</a></li>
+        <li id="orgsTab"><a onclick="return HDX.selectTab('orgs');">Organisations</a></li>
+        <li id="dataTab"><a onclick="return HDX.selectTab('data');">Datasets</a></li>
+      </ul>
+      <section id="content">
+      </section>
+    </main>
+    <div class="spinner">
+      <div class="hexdots-loader">Loading...</div>
+    </div>
+  </body>
+  <script type="text/javascript" src="lib/jquery-2.1.4.min.js"></script>
+  <script type="text/javascript" src="lib/bootstrap/js/bootstrap.min.js"></script>
+  <script type="text/javascript" src="hdx-chooser.js"></script>
+</html>
