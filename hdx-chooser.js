@@ -16,7 +16,14 @@
 /**
  * Root object, acting as a namespace.
  */
-var HDX = {};
+var HDX = {
+    context: {
+        loc: undefined,
+        tag: undefined,
+        org: undefined
+    },
+    path: []
+};
 
 
 /**
@@ -459,9 +466,10 @@ HDX.renderLocations = function() {
     function drawLocation(location) {
         var label = location.display_name + ' (' + location.package_count + ')';
         var node = $('<div class="node folder">').attr('title', label);
-        node.append($('<span class="glyphicon glyphicon-folder-close icon">'));
+        node.append($('<span class="glyphicon glyphicon-map-marker icon">'));
         node.append($('<span class="icon-label">').text(label));
         node.click(function (event) {
+            HDX.context.location = location;
             HDX.renderLocation(location);
         });
         return node;
